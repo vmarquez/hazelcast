@@ -25,13 +25,14 @@ import static org.junit.Assert.assertTrue;
 @Category({QuickTest.class, ParallelTest.class})
 public class Invocation_NotifyCallTimeoutTest extends HazelcastTestSupport {
 
+    private HazelcastInstance hz;
     private OperationServiceImpl operationService;
     private Node node;
     private WaitNotifyKeyImpl waitNotifyKey = new WaitNotifyKeyImpl();
 
     @Before
     public void setup() {
-        HazelcastInstance hz = createHazelcastInstance();
+        hz = createHazelcastInstance();
         node = getNode(hz);
         operationService = (OperationServiceImpl) getOperationService(hz);
     }

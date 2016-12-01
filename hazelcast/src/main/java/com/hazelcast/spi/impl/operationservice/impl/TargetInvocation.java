@@ -31,15 +31,10 @@ final class TargetInvocation extends Invocation {
 
     private final Address target;
 
-    TargetInvocation(Context context, Operation op, Address target, Runnable doneCallback,
-                     int tryCount, long tryPauseMillis, long callTimeoutMillis, boolean deserialize) {
-        super(context, op, doneCallback, tryCount, tryPauseMillis, callTimeoutMillis, deserialize);
-        this.target = target;
-    }
-
     TargetInvocation(Context context, Operation op, Address target,
                      int tryCount, long tryPauseMillis, long callTimeoutMillis, boolean deserialize) {
-        this(context, op, target, null, tryCount, tryPauseMillis, callTimeoutMillis, deserialize);
+        super(context, op, tryCount, tryPauseMillis, callTimeoutMillis, deserialize);
+        this.target = target;
     }
 
     @Override
