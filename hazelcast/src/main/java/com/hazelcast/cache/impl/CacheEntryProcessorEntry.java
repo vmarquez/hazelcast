@@ -18,7 +18,6 @@ package com.hazelcast.cache.impl;
 
 import com.hazelcast.cache.impl.record.CacheRecord;
 import com.hazelcast.nio.serialization.Data;
-import com.hazelcast.spi.impl.operationexecutor.impl.PartitionOperationThread;
 
 import javax.cache.configuration.Factory;
 import javax.cache.expiry.ExpiryPolicy;
@@ -140,11 +139,6 @@ public class CacheEntryProcessorEntry<K, V, R extends CacheRecord>
                         + cacheRecordStore.cacheConfig.getInMemoryFormat());
         }
         return (V) objValue;
-    }
-
-    public R getRecord() {
-        assert (Thread.currentThread() instanceof PartitionOperationThread);
-        return record;
     }
 
     /**
