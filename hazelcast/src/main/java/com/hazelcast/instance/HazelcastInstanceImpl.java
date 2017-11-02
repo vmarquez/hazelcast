@@ -66,6 +66,7 @@ import com.hazelcast.memory.MemoryStats;
 import com.hazelcast.multimap.impl.MultiMapService;
 import com.hazelcast.quorum.QuorumService;
 import com.hazelcast.replicatedmap.impl.ReplicatedMapService;
+import com.hazelcast.replicatedmap.merge.ReplicatedMapMergePolicy;
 import com.hazelcast.ringbuffer.Ringbuffer;
 import com.hazelcast.ringbuffer.impl.RingbufferService;
 import com.hazelcast.scheduledexecutor.IScheduledExecutorService;
@@ -308,6 +309,13 @@ public class HazelcastInstanceImpl implements HazelcastInstance, SerializationSe
         checkNotNull(name, "Retrieving a replicated map instance with a null name is not allowed!");
         return getDistributedObject(ReplicatedMapService.SERVICE_NAME, name);
     }
+
+    //@Override
+    public <K, V> ReplicatedMap<K, V> getReplicatedMap(String name, ReplicatedMapMergePolicy mergePolicy) {
+        checkNotNull(name, "Retrieving a replicated map instance with a null name is not allowed!");
+        return getDistributedObject(ReplicatedMapService.SERVICE_NAME, name);
+    }
+
 
     @Override
     public HazelcastInstanceCacheManager getCacheManager() {

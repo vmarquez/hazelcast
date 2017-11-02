@@ -39,6 +39,7 @@ import com.hazelcast.replicatedmap.impl.operation.ReplicationOperation;
 import com.hazelcast.replicatedmap.impl.record.ReplicatedRecord;
 import com.hazelcast.replicatedmap.impl.record.ReplicatedRecordStore;
 import com.hazelcast.replicatedmap.merge.MergePolicyProvider;
+import com.hazelcast.replicatedmap.merge.ReplicatedMapMergePolicy;
 import com.hazelcast.spi.EventPublishingService;
 import com.hazelcast.spi.ManagedService;
 import com.hazelcast.spi.MigrationAwareService;
@@ -88,8 +89,14 @@ public class ReplicatedMapService implements ManagedService, RemoteService, Even
     private final OperationService operationService;
     private final ReplicatedMapEventPublishingService eventPublishingService;
     private final ReplicatedMapSplitBrainHandlerService splitBrainHandlerService;
+    private final MergePolicyProvider mergePolicyProvider;
+
     private ConcurrentHashMap<String, LocalReplicatedMapStatsImpl> statsMap =
             new ConcurrentHashMap<String, LocalReplicatedMapStatsImpl>();
+
+    private ConcurrentHashMap<String, ReplicatedMapMergePolicy> mergePolicyMap =
+            new ConcurrentHashMap<String, ReplicatedMapMergePolicy>();
+
     private ConstructorFunction<String, LocalReplicatedMapStatsImpl> constructorFunction =
             new ConstructorFunction<String, LocalReplicatedMapStatsImpl>() {
                 @Override
@@ -104,9 +111,10 @@ public class ReplicatedMapService implements ManagedService, RemoteService, Even
         this.partitionService = (InternalPartitionServiceImpl) nodeEngine.getPartitionService();
         this.clusterService = nodeEngine.getClusterService();
         this.operationService = nodeEngine.getOperationService();
+        this.mergePolicyProvider = new MergePolicyProvider(nodeEngine);
         this.partitionContainers = new PartitionContainer[nodeEngine.getPartitionService().getPartitionCount()];
         this.eventPublishingService = new ReplicatedMapEventPublishingService(this);
-        this.splitBrainHandlerService = new ReplicatedMapSplitBrainHandlerService(this, new MergePolicyProvider(nodeEngine));
+        this.splitBrainHandlerService = new ReplicatedMapSplitBrainHandlerService(this, mergePolicyProvider);
     }
 
     @Override
@@ -374,5 +382,17 @@ public class ReplicatedMapService implements ManagedService, RemoteService, Even
             mapStats.put(map, createReplicatedMapStats(map));
         }
         return mapStats;
+    }
+
+    public ReplicatedMapMergePolicy setMergePolicyByMap(String mapName, ReplicatedMapMergePolicy mergePolicy) {
+        return mergePolicyMap.put(mapName, mergePolicy);
+    }
+
+    public ReplicatedMapMergePolicy getMergePolicy(String mapName) {
+        if (mergePolicyMap.contains(mapName))
+            return mergePolicyMap.get(mapName);
+        else {
+           return mergePolicyProvider.getMergePolicy(getReplicatedMapConfig(mapName).getMergePolicy());
+        }
     }
 }

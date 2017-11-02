@@ -120,9 +120,10 @@ class ReplicatedMapSplitBrainHandlerService implements SplitBrainHandlerService 
                 recordCount++;
                 String name = entry.getKey();
                 Collection<ReplicatedRecord> records = entry.getValue();
-                ReplicatedMapConfig replicatedMapConfig = service.getReplicatedMapConfig(name);
-                String mergePolicy = replicatedMapConfig.getMergePolicy();
-                ReplicatedMapMergePolicy policy = mergePolicyProvider.getMergePolicy(mergePolicy);
+                //ReplicatedMapConfig replicatedMapConfig = service.getReplicatedMapConfig(name);
+                //String mergePolicy = replicatedMapConfig.getMergePolicy();
+                //ReplicatedMapMergePolicy parameterizedMergePolicy = service.get
+                ReplicatedMapMergePolicy policy = service.getMergePolicy(name);
                 for (ReplicatedRecord record : records) {
                     ReplicatedMapEntryView entryView = createEntryView(record);
                     MergeOperation mergeOperation = new MergeOperation(name, record.getKeyInternal(), entryView, policy);

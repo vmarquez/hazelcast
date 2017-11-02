@@ -34,6 +34,7 @@ import com.hazelcast.replicatedmap.impl.operation.VersionResponsePair;
 import com.hazelcast.replicatedmap.impl.record.ReplicatedEntryEventFilter;
 import com.hazelcast.replicatedmap.impl.record.ReplicatedQueryEventFilter;
 import com.hazelcast.replicatedmap.impl.record.ReplicatedRecordStore;
+import com.hazelcast.replicatedmap.merge.ReplicatedMapMergePolicy;
 import com.hazelcast.spi.AbstractDistributedObject;
 import com.hazelcast.spi.EventFilter;
 import com.hazelcast.spi.InitializingObject;
@@ -420,6 +421,10 @@ public class ReplicatedMapProxy<K, V> extends AbstractDistributedObject<Replicat
         int result = super.hashCode();
         result = 31 * result + name.hashCode();
         return result;
+    }
+
+    public ReplicatedMapMergePolicy setMergePolicy(ReplicatedMapMergePolicy mergePolicy) {
+        return service.setMergePolicyByMap(name, mergePolicy);
     }
 
     @Override
