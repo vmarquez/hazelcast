@@ -137,6 +137,13 @@ public class ObjectMultiMapProxy<K, V>
         return result.getObjectCollection(nodeEngine);
     }
 
+    public void delete(Object key) {
+        checkNotNull(key, NULL_KEY_IS_NOT_ALLOWED);
+        NodeEngine nodeEngine = getNodeEngine();
+        Data dataKey = nodeEngine.toData(key);
+        deleteInternal(dataKey);
+    }
+
     @Override
     public Set<K> localKeySet() {
         Set<Data> dataKeySet = localKeySetInternal();

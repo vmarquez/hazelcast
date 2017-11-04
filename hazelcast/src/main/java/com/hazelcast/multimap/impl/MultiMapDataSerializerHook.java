@@ -23,12 +23,14 @@ import com.hazelcast.multimap.impl.operations.ClearBackupOperation;
 import com.hazelcast.multimap.impl.operations.ClearOperation;
 import com.hazelcast.multimap.impl.operations.ContainsEntryOperation;
 import com.hazelcast.multimap.impl.operations.CountOperation;
+import com.hazelcast.multimap.impl.operations.DeleteBackupOperation;
+import com.hazelcast.multimap.impl.operations.DeleteOperation;
 import com.hazelcast.multimap.impl.operations.EntrySetOperation;
 import com.hazelcast.multimap.impl.operations.EntrySetResponse;
 import com.hazelcast.multimap.impl.operations.GetAllOperation;
 import com.hazelcast.multimap.impl.operations.KeySetOperation;
-import com.hazelcast.multimap.impl.operations.MultiMapReplicationOperation;
 import com.hazelcast.multimap.impl.operations.MultiMapOperationFactory;
+import com.hazelcast.multimap.impl.operations.MultiMapReplicationOperation;
 import com.hazelcast.multimap.impl.operations.MultiMapResponse;
 import com.hazelcast.multimap.impl.operations.PutBackupOperation;
 import com.hazelcast.multimap.impl.operations.PutOperation;
@@ -113,6 +115,8 @@ public class MultiMapDataSerializerHook implements DataSerializerHook {
     public static final int MULTIMAP_REPLICATION_OPERATION = 45;
     public static final int MULTIMAP_RESPONSE = 46;
     public static final int ENTRY_SET_RESPONSE = 47;
+    public static final int DELETE = 48;
+    public static final int DELETE_BACKUP = 49;
 
 
     public int getFactoryId() {
@@ -121,7 +125,7 @@ public class MultiMapDataSerializerHook implements DataSerializerHook {
 
     public DataSerializableFactory createFactory() {
         ConstructorFunction<Integer, IdentifiedDataSerializable>[] constructors
-                = new ConstructorFunction[ENTRY_SET_RESPONSE + 1];
+                = new ConstructorFunction[DELETE_BACKUP + 1];
         constructors[CLEAR_BACKUP] = new ConstructorFunction<Integer, IdentifiedDataSerializable>() {
             public IdentifiedDataSerializable createNew(Integer arg) {
                 return new ClearBackupOperation();
@@ -302,6 +306,18 @@ public class MultiMapDataSerializerHook implements DataSerializerHook {
         constructors[ENTRY_SET_RESPONSE] = new ConstructorFunction<Integer, IdentifiedDataSerializable>() {
             public IdentifiedDataSerializable createNew(Integer arg) {
                 return new EntrySetResponse();
+            }
+        };
+        constructors[DELETE] = new ConstructorFunction<Integer, IdentifiedDataSerializable>() {
+            @Override
+            public IdentifiedDataSerializable createNew(Integer arg) {
+                return new DeleteOperation();
+            }
+        };
+       constructors[DELETE_BACKUP] = new ConstructorFunction<Integer, IdentifiedDataSerializable>() {
+            @Override
+            public IdentifiedDataSerializable createNew(Integer arg) {
+                return new DeleteBackupOperation();
             }
         };
 
