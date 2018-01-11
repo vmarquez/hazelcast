@@ -57,6 +57,7 @@ import static com.hazelcast.util.Preconditions.checkPositive;
 import static com.hazelcast.util.Preconditions.isNotNull;
 import static com.hazelcast.util.SetUtil.createHashSet;
 
+@SuppressWarnings("checkstyle:methodcount")
 public class ObjectMultiMapProxy<K, V>
         extends MultiMapProxySupport
         implements MultiMap<K, V>, InitializingObject {

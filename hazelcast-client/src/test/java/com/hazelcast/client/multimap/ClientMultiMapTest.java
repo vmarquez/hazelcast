@@ -227,7 +227,6 @@ public class ClientMultiMapTest {
         mm.put(key, 4);
         assertTrue(!mm.get(key).isEmpty());
         mm.delete(key);
-        Collection c = mm.get(key);
         assertTrue(mm.get(key).isEmpty());
     }
 
