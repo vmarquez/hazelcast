@@ -24,12 +24,13 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.Data;
 import com.hazelcast.spi.Operation;
+import com.hazelcast.spi.impl.MutatingOperation;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class RemoveOperation extends MultiMapBackupAwareOperation {
+public class RemoveOperation extends MultiMapBackupAwareOperation implements MutatingOperation {
 
     private Data value;
     private long recordId;
@@ -51,11 +52,11 @@ public class RemoveOperation extends MultiMapBackupAwareOperation {
         }
         Collection<MultiMapRecord> coll = multiMapValue.getCollection(false);
         MultiMapRecord record = new MultiMapRecord(isBinary() ? value : toObject(value));
-        Iterator<MultiMapRecord> iter = coll.iterator();
-        while (iter.hasNext()) {
-            MultiMapRecord r = iter.next();
+        Iterator<MultiMapRecord> iterator = coll.iterator();
+        while (iterator.hasNext()) {
+            MultiMapRecord r = iterator.next();
             if (r.equals(record)) {
-                iter.remove();
+                iterator.remove();
                 recordId = r.getRecordId();
                 response = true;
                 if (coll.isEmpty()) {

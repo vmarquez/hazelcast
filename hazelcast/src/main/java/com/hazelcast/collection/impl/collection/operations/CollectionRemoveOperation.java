@@ -24,13 +24,16 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.Data;
 import com.hazelcast.spi.Operation;
+import com.hazelcast.spi.impl.MutatingOperation;
 
 import java.io.IOException;
 
-public class CollectionRemoveOperation extends CollectionBackupAwareOperation {
+import static com.hazelcast.collection.impl.collection.CollectionContainer.INVALID_ITEM_ID;
+
+public class CollectionRemoveOperation extends CollectionBackupAwareOperation implements MutatingOperation {
 
     private Data value;
-    private long itemId = -1;
+    private long itemId = INVALID_ITEM_ID;
 
     public CollectionRemoveOperation() {
     }
@@ -53,14 +56,14 @@ public class CollectionRemoveOperation extends CollectionBackupAwareOperation {
 
     @Override
     public void afterRun() throws Exception {
-        if (itemId != -1) {
+        if (itemId != INVALID_ITEM_ID) {
             publishEvent(ItemEventType.REMOVED, value);
         }
     }
 
     @Override
     public boolean shouldBackup() {
-        return itemId != -1;
+        return itemId != INVALID_ITEM_ID;
     }
 
     @Override

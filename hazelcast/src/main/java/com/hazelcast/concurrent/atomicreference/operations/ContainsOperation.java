@@ -17,14 +17,16 @@
 package com.hazelcast.concurrent.atomicreference.operations;
 
 import com.hazelcast.concurrent.atomicreference.AtomicReferenceContainer;
-import com.hazelcast.concurrent.atomicreference.AtomicReferenceDataSerializerHook;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.Data;
+import com.hazelcast.spi.ReadonlyOperation;
 
 import java.io.IOException;
 
-public class ContainsOperation extends AbstractAtomicReferenceOperation {
+import static com.hazelcast.concurrent.atomicreference.AtomicReferenceDataSerializerHook.CONTAINS;
+
+public class ContainsOperation extends AbstractAtomicReferenceOperation implements ReadonlyOperation {
 
     private boolean returnValue;
     private Data contains;
@@ -39,8 +41,8 @@ public class ContainsOperation extends AbstractAtomicReferenceOperation {
 
     @Override
     public void run() throws Exception {
-        AtomicReferenceContainer atomicReferenceContainer = getReferenceContainer();
-        returnValue = atomicReferenceContainer.contains(contains);
+        AtomicReferenceContainer container = getReferenceContainer();
+        returnValue = container.contains(contains);
     }
 
     @Override
@@ -50,7 +52,7 @@ public class ContainsOperation extends AbstractAtomicReferenceOperation {
 
     @Override
     public int getId() {
-        return AtomicReferenceDataSerializerHook.CONTAINS;
+        return CONTAINS;
     }
 
     @Override

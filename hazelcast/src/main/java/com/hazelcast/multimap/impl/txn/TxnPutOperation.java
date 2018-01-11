@@ -28,11 +28,12 @@ import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.Data;
 import com.hazelcast.spi.BackupAwareOperation;
 import com.hazelcast.spi.Operation;
+import com.hazelcast.spi.impl.MutatingOperation;
 
 import java.io.IOException;
 import java.util.Collection;
 
-public class TxnPutOperation extends MultiMapKeyBasedOperation implements BackupAwareOperation {
+public class TxnPutOperation extends MultiMapKeyBasedOperation implements BackupAwareOperation, MutatingOperation {
 
     long recordId;
     Data value;
@@ -65,7 +66,7 @@ public class TxnPutOperation extends MultiMapKeyBasedOperation implements Backup
     @Override
     public void afterRun() throws Exception {
         long elapsed = Math.max(0, System.nanoTime() - startTimeNanos);
-        final MultiMapService service = getService();
+        MultiMapService service = getService();
         service.getLocalMultiMapStatsImpl(name).incrementPutLatencyNanos(elapsed);
         if (Boolean.TRUE.equals(response)) {
             publishEvent(EntryEventType.ADDED, dataKey, value, null);
@@ -104,5 +105,4 @@ public class TxnPutOperation extends MultiMapKeyBasedOperation implements Backup
     public int getId() {
         return MultiMapDataSerializerHook.TXN_PUT;
     }
-
 }

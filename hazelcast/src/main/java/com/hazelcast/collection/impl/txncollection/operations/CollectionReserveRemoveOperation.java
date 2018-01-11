@@ -22,14 +22,17 @@ import com.hazelcast.collection.impl.collection.operations.CollectionOperation;
 import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.Data;
+import com.hazelcast.spi.impl.MutatingOperation;
 
 import java.io.IOException;
 
-public class CollectionReserveRemoveOperation extends CollectionOperation {
+import static com.hazelcast.collection.impl.collection.CollectionContainer.INVALID_ITEM_ID;
+
+public class CollectionReserveRemoveOperation extends CollectionOperation implements MutatingOperation {
 
     private String transactionId;
     private Data value;
-    private long reservedItemId = -1;
+    private long reservedItemId = INVALID_ITEM_ID;
 
     public CollectionReserveRemoveOperation() {
     }

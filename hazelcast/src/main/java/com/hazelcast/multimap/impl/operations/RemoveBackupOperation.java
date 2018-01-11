@@ -23,12 +23,13 @@ import com.hazelcast.nio.ObjectDataInput;
 import com.hazelcast.nio.ObjectDataOutput;
 import com.hazelcast.nio.serialization.Data;
 import com.hazelcast.spi.BackupOperation;
+import com.hazelcast.spi.impl.MutatingOperation;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
-public class RemoveBackupOperation extends MultiMapKeyBasedOperation implements BackupOperation {
+public class RemoveBackupOperation extends MultiMapKeyBasedOperation implements BackupOperation, MutatingOperation {
 
     long recordId;
 
@@ -48,10 +49,10 @@ public class RemoveBackupOperation extends MultiMapKeyBasedOperation implements 
             return;
         }
         Collection<MultiMapRecord> coll = multiMapValue.getCollection(false);
-        Iterator<MultiMapRecord> iter = coll.iterator();
-        while (iter.hasNext()) {
-            if (iter.next().getRecordId() == recordId) {
-                iter.remove();
+        Iterator<MultiMapRecord> iterator = coll.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getRecordId() == recordId) {
+                iterator.remove();
                 response = true;
                 if (coll.isEmpty()) {
                     delete();
@@ -77,5 +78,4 @@ public class RemoveBackupOperation extends MultiMapKeyBasedOperation implements 
     public int getId() {
         return MultiMapDataSerializerHook.REMOVE_BACKUP;
     }
-
 }

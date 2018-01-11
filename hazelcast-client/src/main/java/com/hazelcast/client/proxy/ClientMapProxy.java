@@ -969,26 +969,25 @@ public class ClientMapProxy<K, V> extends ClientProxy implements IMap<K, V>, Eve
         ClientMessage response = invoke(request, keyData);
 
         MapGetEntryViewCodec.ResponseParameters parameters = MapGetEntryViewCodec.decodeResponse(response);
-        SimpleEntryView<K, V> entryView = new SimpleEntryView<K, V>();
         SimpleEntryView<Data, Data> dataEntryView = parameters.response;
 
         if (dataEntryView == null) {
             return null;
         }
-        entryView.setKey((K) toObject(dataEntryView.getKey()));
-        entryView.setValue((V) toObject(dataEntryView.getValue()));
-        entryView.setCost(dataEntryView.getCost());
-        entryView.setCreationTime(dataEntryView.getCreationTime());
-        entryView.setExpirationTime(dataEntryView.getExpirationTime());
-        entryView.setHits(dataEntryView.getHits());
-        entryView.setLastAccessTime(dataEntryView.getLastAccessTime());
-        entryView.setLastStoredTime(dataEntryView.getLastStoredTime());
-        entryView.setLastUpdateTime(dataEntryView.getLastUpdateTime());
-        entryView.setVersion(dataEntryView.getVersion());
-        entryView.setHits(dataEntryView.getHits());
-        entryView.setTtl(dataEntryView.getTtl());
         // TODO: putCache
-        return entryView;
+        return new SimpleEntryView<K, V>()
+                .withKey((K) toObject(dataEntryView.getKey()))
+                .withValue((V) toObject(dataEntryView.getValue()))
+                .withCost(dataEntryView.getCost())
+                .withCreationTime(dataEntryView.getCreationTime())
+                .withExpirationTime(dataEntryView.getExpirationTime())
+                .withHits(dataEntryView.getHits())
+                .withLastAccessTime(dataEntryView.getLastAccessTime())
+                .withLastStoredTime(dataEntryView.getLastStoredTime())
+                .withLastUpdateTime(dataEntryView.getLastUpdateTime())
+                .withVersion(dataEntryView.getVersion())
+                .withHits(dataEntryView.getHits())
+                .withTtl(dataEntryView.getTtl());
     }
 
     @Override
@@ -1356,7 +1355,7 @@ public class ClientMapProxy<K, V> extends ClientProxy implements IMap<K, V>, Eve
     @Override
     public Map<K, Object> executeOnEntries(EntryProcessor entryProcessor, Predicate predicate) {
         ClientMessage request = MapExecuteWithPredicateCodec.encodeRequest(name, toData(entryProcessor), toData(predicate));
-        ClientMessage response = invoke(request);
+        ClientMessage response = invokeWithPredicate(request, predicate);
 
         MapExecuteWithPredicateCodec.ResponseParameters resultParameters = MapExecuteWithPredicateCodec.decodeResponse(response);
         return prepareResult(resultParameters.response);
@@ -1380,7 +1379,7 @@ public class ClientMapProxy<K, V> extends ClientProxy implements IMap<K, V>, Eve
         checkNotPagingPredicate(predicate, "aggregate");
 
         ClientMessage request = MapAggregateWithPredicateCodec.encodeRequest(name, toData(aggregator), toData(predicate));
-        ClientMessage response = invoke(request);
+        ClientMessage response = invokeWithPredicate(request, predicate);
 
         MapAggregateWithPredicateCodec.ResponseParameters resultParameters =
                 MapAggregateWithPredicateCodec.decodeResponse(response);
@@ -1403,7 +1402,7 @@ public class ClientMapProxy<K, V> extends ClientProxy implements IMap<K, V>, Eve
         checkNotPagingPredicate(predicate, "project");
 
         ClientMessage request = MapProjectWithPredicateCodec.encodeRequest(name, toData(projection), toData(predicate));
-        ClientMessage response = invoke(request);
+        ClientMessage response = invokeWithPredicate(request, predicate);
 
         MapProjectWithPredicateCodec.ResponseParameters resultParameters =
                 MapProjectWithPredicateCodec.decodeResponse(response);
@@ -1640,9 +1639,7 @@ public class ClientMapProxy<K, V> extends ClientProxy implements IMap<K, V>, Eve
                                     Predicate<K, V> predicate) {
         checkNotNull(projection, NULL_PROJECTION_IS_NOT_ALLOWED);
         checkNotNull(predicate, NULL_PREDICATE_IS_NOT_ALLOWED);
-        if (predicate instanceof PagingPredicate) {
-            throw new IllegalArgumentException("Paging predicate is not allowed when iterating map by query");
-        }
+        checkNotPagingPredicate(predicate, "iterator");
         return new ClientMapQueryPartitionIterator<K, V, R>(this, getContext(), fetchSize, partitionId,
                 predicate, projection);
     }

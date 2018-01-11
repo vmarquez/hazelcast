@@ -19,8 +19,9 @@ package com.hazelcast.multimap.impl.operations;
 import com.hazelcast.multimap.impl.MultiMapContainer;
 import com.hazelcast.multimap.impl.MultiMapDataSerializerHook;
 import com.hazelcast.spi.BackupOperation;
+import com.hazelcast.spi.impl.MutatingOperation;
 
-public class ClearBackupOperation extends MultiMapOperation implements BackupOperation {
+public class ClearBackupOperation extends MultiMapOperation implements BackupOperation, MutatingOperation {
 
     public ClearBackupOperation() {
     }
@@ -40,5 +41,4 @@ public class ClearBackupOperation extends MultiMapOperation implements BackupOpe
     public int getId() {
         return MultiMapDataSerializerHook.CLEAR_BACKUP;
     }
-
 }

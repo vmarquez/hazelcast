@@ -16,72 +16,76 @@
 
 package com.hazelcast.quorum.queue;
 
+import com.hazelcast.config.Config;
 import com.hazelcast.config.QueueConfig;
 import com.hazelcast.config.QuorumConfig;
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IQueue;
+import com.hazelcast.instance.HazelcastInstanceFactory;
 import com.hazelcast.quorum.PartitionedCluster;
 import com.hazelcast.quorum.QuorumType;
 import com.hazelcast.test.TestHazelcastInstanceFactory;
-import org.junit.Test;
 
 import static com.hazelcast.quorum.PartitionedCluster.QUORUM_ID;
+import static com.hazelcast.quorum.QuorumType.READ;
+import static com.hazelcast.quorum.QuorumType.READ_WRITE;
+import static com.hazelcast.quorum.QuorumType.WRITE;
 import static com.hazelcast.test.HazelcastTestSupport.randomString;
 
 public abstract class AbstractQueueQuorumTest {
 
-    protected static final String QUEUE_NAME_PREFIX = "quorum";
-
-    protected static final int QUEUE_DATA_COUNT = 50;
-    protected static final String QUEUE_NAME = QUEUE_NAME_PREFIX + randomString();
+    protected static final String QUEUE_NAME = "quorum" + randomString();
 
     protected static PartitionedCluster cluster;
-    protected static IQueue<Object> q1;
-    protected static IQueue<Object> q2;
-    protected static IQueue<Object> q3;
-    protected static IQueue<Object> q4;
-    protected static IQueue<Object> q5;
 
-    protected static void initializeFiveMemberCluster(QuorumType type, int quorumSize) {
-        QuorumConfig quorumConfig = new QuorumConfig()
-                .setName(QUORUM_ID)
-                .setType(type)
-                .setEnabled(true)
-                .setSize(quorumSize);
-        QueueConfig qConfig = new QueueConfig(QUEUE_NAME_PREFIX + "*")
-                .setBackupCount(4)
-                .setQuorumName(QUORUM_ID);
-        cluster = new PartitionedCluster(new TestHazelcastInstanceFactory());
-        cluster.createFiveMemberCluster(qConfig, quorumConfig);
-        q1 = getQueue(cluster.h1);
-        q2 = getQueue(cluster.h2);
-        q3 = getQueue(cluster.h3);
-        q4 = getQueue(cluster.h4);
-        q5 = getQueue(cluster.h5);
+    protected static void initTestEnvironment(Config config, TestHazelcastInstanceFactory factory) {
+        initCluster(PartitionedCluster.createClusterConfig(config), factory, READ, WRITE, READ_WRITE);
     }
 
-    protected static <E> IQueue<E> getQueue(HazelcastInstance instance) {
-        return instance.getQueue(QUEUE_NAME);
+    protected static void shutdownTestEnvironment() {
+        HazelcastInstanceFactory.terminateAll();
+        cluster = null;
     }
 
-    protected static void addQueueData(IQueue<Object> q) {
-        for (int i = 0; i < QUEUE_DATA_COUNT; i++) {
-            q.add("foo" + i);
+    protected static QueueConfig newConfig(QuorumType quorumType, String quorumName) {
+        QueueConfig config = new QueueConfig(QUEUE_NAME + quorumType.name());
+        config.setQuorumName(quorumName);
+        return config;
+    }
+
+    protected static QuorumConfig newQuorumConfig(QuorumType quorumType, String quorumName) {
+        QuorumConfig quorumConfig = new QuorumConfig();
+        quorumConfig.setName(quorumName);
+        quorumConfig.setType(quorumType);
+        quorumConfig.setEnabled(true);
+        quorumConfig.setSize(3);
+        return quorumConfig;
+    }
+
+    protected static void initCluster(Config config, TestHazelcastInstanceFactory factory, QuorumType... types) {
+        cluster = new PartitionedCluster(factory);
+
+        String[] quorumNames = new String[types.length];
+        int i = 0;
+        for (QuorumType quorumType : types) {
+            String quorumName = QUORUM_ID + quorumType.name();
+            QuorumConfig quorumConfig = newQuorumConfig(quorumType, quorumName);
+            QueueConfig queueConfig = newConfig(quorumType, quorumName);
+            config.addQuorumConfig(quorumConfig);
+            config.addQueueConfig(queueConfig);
+            quorumNames[i++] = quorumName;
         }
+
+        cluster.createFiveMemberCluster(config);
+        for (QuorumType quorumType : types) {
+            for (int element = 0; element < 5000; element++) {
+                cluster.instance[0].getQueue(QUEUE_NAME + quorumType.name()).offer(element);
+            }
+        }
+        cluster.splitFiveMembersThreeAndTwo(quorumNames);
     }
 
-    @Test
-    public void testOperationsSuccessfulWhenQuorumSizeMet() throws Exception {
-        q1.put("foo");
-        q2.offer("bar");
-        q3.add("bar2");
-
-        q3.take();
-        q1.remove("bar");
-        q2.poll();
-        q1.element();
-        q2.peek();
-
-        q3.getLocalQueueStats();
+    protected IQueue queue(int index, QuorumType quorumType) {
+        return cluster.instance[index].getQueue(QUEUE_NAME + quorumType.name());
     }
+
 }
